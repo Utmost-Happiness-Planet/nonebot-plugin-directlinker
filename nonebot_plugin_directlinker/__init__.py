@@ -39,14 +39,17 @@ async def link(bot: Bot, event: GroupMessageEvent, state: T_State = State()):
                     files[i["file_name"]] = (i["file_id"], i["busid"])
                 # 广度优先搜索
                 d = deque()
-                d.extend([i["folder_id"] for i in folders])
+                if folders:
+                    d.extend([i["folder_id"] for i in folders])
                 while d:
                     _ = d.popleft()
                     logger.debug("下一个搜索的文件夹：" + _)
                     root = await bot.get_group_files_by_folder(group_id=int(event.group_id), folder_id=_)
                     folders = root.get("folders")
-                    for i in root.get("files"):
-                        files[i["file_name"]] = (i["file_id"], i["busid"])
+                    file = root.get("files")
+                    if file:
+                        for i in files:
+                            files[i["file_name"]] = (i["file_id"], i["busid"])
                     if folders:
                         d.extend([i["folder_id"] for i in folders])
 
