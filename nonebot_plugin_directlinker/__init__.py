@@ -1,8 +1,9 @@
-from nonebot import get_driver, on_message, logger, on_shell_command
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, MessageSegment
+from nonebot import get_driver, logger, on_shell_command
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
 from nonebot.typing import T_State
 from nonebot.rule import ArgumentParser
 from collections import deque
+from nonebot.params import State
 
 linker_group = get_driver().config.linker_group
 
@@ -14,20 +15,21 @@ linker = on_shell_command("link", parser=linker_parser, priority=1)
 
 help_text = """Manual of 群文件直链提取器
 -n | --name     文件名*
+例：link -n 文件名.exe
 """
 
 
 @linker.handle()
-async def link(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def link(bot: Bot, event: GroupMessageEvent, state: T_State = State()):
     gid = str(event.group_id)
     if gid in linker_group:
-        args = vars(state.get("args"))
-        # logger.debug(args["name"])
+        args = vars(state.get("_args"))
+        logger.debug(args)
         if args["help"]:
             await linker.finish(help_text)
         else:
             if args["name"] is None:
-                await linker.finish("[Linker]不输入文件名可提取不了直链哦~")
+                await linker.finish("[Linker]语法错误，输入`link -h`查看帮助")
             else:
                 await bot.send(event, "[Linker]处理中，请稍后…")
                 root = await bot.get_group_root_files(group_id=int(event.group_id))
