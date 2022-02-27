@@ -5,7 +5,7 @@ from nonebot.rule import ArgumentParser
 from collections import deque
 from nonebot.params import State
 
-linker_group = get_driver().config.linker_group
+linker_group = get_driver().config.dict().get('linker_group',[])
 
 linker_parser = ArgumentParser(add_help=False)
 linker_parser.add_argument("-h", "--help", dest="help", action="store_true")
@@ -48,7 +48,7 @@ async def link(bot: Bot, event: GroupMessageEvent, state: T_State = State()):
                     folders = root.get("folders")
                     file = root.get("files")
                     if file:
-                        for i in files:
+                        for i in file:
                             files[i["file_name"]] = (i["file_id"], i["busid"])
                     if folders:
                         d.extend([i["folder_id"] for i in folders])
