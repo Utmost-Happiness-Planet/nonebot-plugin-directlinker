@@ -3,9 +3,10 @@ from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
 from nonebot.typing import T_State
 from nonebot.rule import ArgumentParser
 from collections import deque
-from nonebot.params import State
 
-linker_group = get_driver().config.dict().get('linker_group',[])
+linker_group = get_driver().config.dict().get('linker_group', [])
+if not linker_group:
+    logger.warning('[直连提取]请在配置文件中设置应用群聊: linker_group=[\'群号\']')
 
 linker_parser = ArgumentParser(add_help=False)
 linker_parser.add_argument("-h", "--help", dest="help", action="store_true")
@@ -15,21 +16,21 @@ linker = on_shell_command("link", parser=linker_parser, priority=1)
 
 help_text = """Manual of 群文件直链提取器
 -n | --name     文件名*
-例：link -n 文件名.exe
+例：/link -n 文件名.exe
 """
 
 
 @linker.handle()
-async def link(bot: Bot, event: GroupMessageEvent, state: T_State = State()):
+async def link(bot: Bot, event: GroupMessageEvent, state: T_State):
     gid = str(event.group_id)
     if gid in linker_group:
         args = vars(state.get("_args"))
         logger.debug(args)
-        if args["help"]:
+        if args.get('help'):
             await linker.finish(help_text)
         else:
-            if args["name"] is None:
-                await linker.finish("[Linker]语法错误，输入`link -h`查看帮助")
+            if args.get('name') is None:
+                await linker.finish("[Linker]语法错误，输入`/link -h`查看帮助")
             else:
                 await bot.send(event, "[Linker]处理中，请稍后…")
                 root = await bot.get_group_root_files(group_id=int(event.group_id))

@@ -42,8 +42,8 @@ linker_group=["<QQ群号>"]  # 启用插件的群
 ### 插件语法
 
 ```python
-link -h/--help  # 获取帮助
-link -n/--name <文件名>  # 获取文件直链
+/link -h|--help  # 获取帮助
+/link -n|--name <文件名>  # 获取文件直链
 ```
 
 ### 致谢
