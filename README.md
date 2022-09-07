@@ -45,6 +45,6 @@ linker_command="link" # 设置插件触发命令（默认`link`）
 ### 插件语法
 
 ```python
-/<link_command> -h|--help  # 获取帮助
-/<link_command> -n|--name <文件名>  # 获取文件直链
+/<linker_command> -h|--help  # 获取帮助
+/<linker_command> -n|--name <文件名>  # 获取文件直链
 ```
