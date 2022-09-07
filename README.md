@@ -36,12 +36,15 @@
 配置文件`.env.*`中添加：
 
 ```python
+COMMAND_START=["/", ""]  # 别忘了设置指令前缀，这里只是提醒一下，如果你不知道这个有什么用，请阅读nonebot文档
+
 linker_group=["<QQ群号>"]  # 启用插件的群
+linker_command="link" # 设置插件触发命令（默认`link`）
 ```
 
 ### 插件语法
 
 ```python
-/link -h|--help  # 获取帮助
-/link -n|--name <文件名>  # 获取文件直链
+/<link_command> -h|--help  # 获取帮助
+/<link_command> -n|--name <文件名>  # 获取文件直链
 ```

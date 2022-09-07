@@ -6,17 +6,20 @@ from collections import deque
 
 linker_group = get_driver().config.dict().get('linker_group', [])
 if not linker_group:
-    logger.warning('[直连提取]请在配置文件中设置应用群聊: linker_group=[\'群号\']')
+    logger.warning('[直链提取]请在配置文件中设置应用群聊: linker_group=[\'群号\']')
+linker_command = get_driver().config.dict().get('linker_command', "")
+if not linker_command:
+    linker_command = "link"
 
 linker_parser = ArgumentParser(add_help=False)
 linker_parser.add_argument("-h", "--help", dest="help", action="store_true")
 linker_parser.add_argument("-n", "--name", dest="name")
 
-linker = on_shell_command("link", parser=linker_parser, priority=1)
+linker = on_shell_command(linker_command, parser=linker_parser, priority=1)
 
-help_text = """Manual of 群文件直链提取器
+help_text = f"""Manual of 群文件直链提取器
 -n | --name     文件名*
-例：/link -n 文件名.exe
+例：/{linker_command} -n 文件名.exe
 """
 
 
@@ -30,7 +33,7 @@ async def link(bot: Bot, event: GroupMessageEvent, state: T_State):
             await linker.finish(help_text)
         else:
             if args.get('name') is None:
-                await linker.finish("[Linker]语法错误，输入`/link -h`查看帮助")
+                await linker.finish(f"[Linker]语法错误，输入`/{linker_command} -h`查看帮助")
             else:
                 await bot.send(event, "[Linker]处理中，请稍后…")
                 root = await bot.get_group_root_files(group_id=int(event.group_id))
