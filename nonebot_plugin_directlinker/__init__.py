@@ -24,7 +24,7 @@ help_text = f"""Manual of 群文件直链提取器
 @linker.handle()
 async def link(bot: Bot, event: GroupMessageEvent, state: T_State):
     gid = str(event.group_id)
-    if gid in linker_group:
+    if gid in linker_group or "all" in linker_group:
         args = vars(state.get("_args"))
 
         name = args.get('name')
