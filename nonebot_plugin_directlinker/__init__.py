@@ -13,14 +13,14 @@ linker_command = config.linker_command
 linker_parser = ArgumentParser(add_help=False)
 linker_parser.add_argument("-h", "--help", dest="help", action="store_true")
 linker_parser.add_argument("-n", "--name", dest="name")
-linker_parser.add_argument("-f", "--file", dest="file", type=int)
+linker_parser.add_argument("-i", "--info", dest="info", type=int)
 linker_parser.add_argument("-p", "--path", dest="path")
 
 linker = on_shell_command(linker_command, parser=linker_parser, priority=1)
 
 help_text = f"""Manual of 群文件直链提取器
 -n | --name     文件名.*
--f | --file     文件序号 
+-i | --info     文件序号 
 -p | --path     文件路径
 例：/{linker_command} -n 文件名.exe
 """
@@ -34,7 +34,7 @@ async def link(bot: Bot, event: GroupMessageEvent, state: T_State):
 
         help = args.get('help')
         name = args.get('name')
-        file = args.get('file')
+        info = args.get('info')
         path = args.get('path')
 
         logger.debug(args)
@@ -87,8 +87,8 @@ async def link(bot: Bot, event: GroupMessageEvent, state: T_State):
             elif len(searched_list) == 1:
                 file = searched_list[0]
             elif len(searched_list) > 1:
-                if file is not None and file <= len(searched_list):
-                    file = searched_list[args.get('file') - 1]
+                if info is not None and info <= len(searched_list):
+                    file = searched_list[info - 1]
                 else:
                     result = f"[Linker]找到了多个文件，请输入`/{linker_command} -n 文件名.* -f 文件序号`来选择文件"
                     for i in range(len(searched_list)):
