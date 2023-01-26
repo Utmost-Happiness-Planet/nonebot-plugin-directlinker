@@ -47,10 +47,10 @@ async def link(bot: Bot, event: GroupMessageEvent, state: T_State):
             await bot.send(event, "[Linker]处理中，请稍后…")
             root = await bot.get_group_root_files(group_id=int(event.group_id))
             files = {'root': root.get('files')}
-
-            for folder in root.get('folders'):
-                file = await bot.get_group_files_by_folder(group_id=int(event.group_id), folder_id=folder['folder_id'])
-                files[folder['folder_name']] = file.get('files')
+            if root.get('folders'):
+                for folder in root.get('folders'):
+                    file = await bot.get_group_files_by_folder(group_id=int(event.group_id), folder_id=folder['folder_id'])
+                    files[folder['folder_name']] = file.get('files')
             # QQ群文件内不能套文件夹
 
             # # 广度优先搜索
