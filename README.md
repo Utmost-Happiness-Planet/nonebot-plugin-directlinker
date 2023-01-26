@@ -66,7 +66,7 @@ linker_command="link" # 设置插件触发命令（默认`link`）
 ```text
 Manual of 群文件直链提取器
 -n | --name     文件名.*
--f | --file     文件序号 
+-i | --info     文件序号 
 -p | --path     文件路径
 例：/link -n 文件名.exe
 ```
@@ -88,10 +88,12 @@ Manual of 群文件直链提取器
 
 在群文件中存在两个文件名一样的`bar.txt`，我们无法直接提取其直链，需要指定某个文件。
 
-`/<linker_command> -n <文件名> -f <文件序号>`
-`/<linker_command> --name <文件名> --file <文件序号>`
+`/<linker_command> -n <文件名> -i <文件序号>`
+`/<linker_command> --name <文件名> --info <文件序号>`
 
 或者，在同文件夹内文件不重复的情况下，可以使用文件路径来提取直链。
+
+对于文件路径，在群文件根目录下请使用`/`，在子目录下请直接使用子目录名，如`Folder`。
 
 `/<linker_command> -n <文件名> -p <文件路径>`
 `/<linker_command> --name <文件名> --path <文件路径>`
