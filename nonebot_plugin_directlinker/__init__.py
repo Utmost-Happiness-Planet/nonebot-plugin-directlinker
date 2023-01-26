@@ -78,6 +78,8 @@ async def link(bot: Bot, event: GroupMessageEvent, state: T_State):
                     files = files[path]
                 else:
                     await linker.finish("[Linker]并没有找到文件呢~是否文件路径输错了？")
+            else:
+                files = [i for i in files.values() for i in i]
 
             searched_list: list[dict] = [i for i in files if name == i['file_name']]
 
