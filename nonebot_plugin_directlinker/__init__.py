@@ -1,8 +1,9 @@
-from nonebot import get_driver, logger, on_shell_command
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
-from nonebot.typing import T_State
+import time
+
+from nonebot import logger, on_shell_command
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment, Message
 from nonebot.rule import ArgumentParser
-from collections import deque
+from nonebot.typing import T_State
 
 from . import config
 
@@ -12,11 +13,12 @@ linker_command = config.linker_command
 linker_parser = ArgumentParser(add_help=False)
 linker_parser.add_argument("-h", "--help", dest="help", action="store_true")
 linker_parser.add_argument("-n", "--name", dest="name")
+linker_parser.add_argument("-f", "--file", dest="file", type=int)
 
 linker = on_shell_command(linker_command, parser=linker_parser, priority=1)
 
 help_text = f"""Manual of 群文件直链提取器
--n | --name     文件名*
+-n | --name     文件名.* 
 例：/{linker_command} -n 文件名.exe
 """
 
@@ -28,6 +30,8 @@ async def link(bot: Bot, event: GroupMessageEvent, state: T_State):
         args = vars(state.get("_args"))
 
         name = args.get('name')
+        file = args.get('file')
+
         logger.debug(args)
         if args.get('help'):
             await linker.finish(help_text)
@@ -37,32 +41,65 @@ async def link(bot: Bot, event: GroupMessageEvent, state: T_State):
             else:
                 await bot.send(event, "[Linker]处理中，请稍后…")
                 root = await bot.get_group_root_files(group_id=int(event.group_id))
-                folders = root.get("folders")
-                files = {}
-                for i in root.get("files"):
-                    files[i["file_name"]] = (i["file_id"], i["busid"])
-                # 广度优先搜索
-                d = deque()
-                if folders:
-                    d.extend([i["folder_id"] for i in folders])
-                while d:
-                    _ = d.popleft()
-                    logger.debug("下一个搜索的文件夹：" + _)
-                    root = await bot.get_group_files_by_folder(group_id=int(event.group_id), folder_id=_)
-                    folders = root.get("folders")
-                    file = root.get("files")
-                    if file:
-                        for i in file:
-                            files[i["file_name"]] = (i["file_id"], i["busid"])
-                    if folders:
-                        d.extend([i["folder_id"] for i in folders])
+
+                files = [i for i in root.get("files")]
+
+                for i in root.get('folders'):
+                    folder = await bot.get_group_files_by_folder(group_id=int(event.group_id), folder_id=i['folder_id'])
+                    files.extend(folder.get('files'))
+
+                # QQ群文件内不能套文件夹
+
+                # # 广度优先搜索
+                # d = deque()
+                # if folders:
+                #     d.extend([i["folder_id"] for i in folders])
+                # while d:
+                #     _ = d.popleft()
+                #     logger.debug("下一个搜索的文件夹：" + _)
+                #     root = await bot.get_group_files_by_folder(group_id=int(event.group_id), folder_id=_)
+                #     folders = root.get("folders")
+                #     file = root.get("files")
+                #     if file:
+                #         for i in file:
+                #             files[i["file_name"]] = i
+                #     if folders:
+                #         d.extend([i["folder_id"] for i in folders])
 
                 logger.debug("共扫描出 " + str(len(files)) + " 个文件")
 
-                if args["name"] in files:
-                    logger.debug([int(event.group_id), files[args["name"]][0], files[args["name"]][1]])
-                    result = await bot.get_group_file_url(group_id=int(event.group_id), file_id=str(files[args["name"]][0]), bus_id=int(files[args["name"]][1]))
-                    result = "文件名：" + args["name"] + "\n文件类型：" + str(files[args["name"]][1]) + "\n文件id：" + files[args["name"]][0] + "\n直链：" + result['url']
-                else:
+                # 搜索files 中文件 创建list
+                searched_list: list[dict] = [i for i in files if name == i['file_name']]
+
+                if len(searched_list) == 0:
                     result = "[Linker]并没有找到文件呢~是否文件名输错了？"
-                await linker.finish(result)
+                    await linker.finish(result)
+                elif len(searched_list) == 1:
+                    file = searched_list[0]
+                elif len(searched_list) > 1 and file is not None and file <= len(searched_list):
+                    file = searched_list[args.get('file') - 1]
+                else:
+                    result = f"[Linker]找到了多个文件，请输入`/{linker_command} -n 文件名.* -f 文件序号`来选择文件"
+                    for i in range(len(searched_list)):
+                        result += f"\n{i + 1}：上传者{searched_list[i]['uploader_name']}，上传时间" \
+                                  + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(searched_list[i]['upload_time']))
+                    await linker.finish(result)
+
+                url = await bot.get_group_file_url(group_id=int(event.group_id), file_id=file['file_id'],
+                                                   bus_id=file['busid'])
+
+                # url = url.get('url').rpartition("url")[0] + '?fname=' + name
+
+                result = [f"文件名：{file['file_name']}"
+                          f"""\n上传时间：{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(file['upload_time']))}"""]
+                result.extend(['\n上传者：', MessageSegment(type='at', data={'qq': file['uploader']})])
+                result.append(f"\n下载链接：{url.get('url')}\n")
+
+            # if args["name"] in files:
+            #     logger.debug([int(event.group_id), files[args["name"]][0], files[args["name"]][1]])
+            #     result = await bot.get_group_file_url(group_id=int(event.group_id),
+            #                                           file_id=str(files[args["name"]][0]),
+            #                                           bus_id=int(files[args["name"]][1]))
+            #     result = "文件名：" + args["name"] + "\n文件类型：" + str(files[args["name"]][1]) + "\n文件id：" + \
+            #              files[args["name"]][0] + "\n直链：" + result['url']
+            await linker.send(Message(result), at_sender=True)
