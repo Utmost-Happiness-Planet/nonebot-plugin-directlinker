@@ -92,7 +92,7 @@ async def link(bot: Bot, event: GroupMessageEvent, state: T_State):
                 if info is not None and info <= len(searched_list):
                     file = searched_list[info - 1]
                 else:
-                    result = f"[Linker]找到了多个文件，请输入`/{linker_command} -n 文件名.* -f 文件序号`来选择文件"
+                    result = f"[Linker]找到了{len(searched_list)}个文件，请输入`/{linker_command} -n 文件名 -i 文件序号`来选择文件"
                     for i in range(len(searched_list)):
                         result += f"\n{i + 1}：上传者{searched_list[i]['uploader_name']}，上传时间" \
                                   + time.strftime('%Y-%m-%d %H:%M:%S',
