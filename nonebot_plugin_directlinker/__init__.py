@@ -4,12 +4,10 @@ from nonebot.typing import T_State
 from nonebot.rule import ArgumentParser
 from collections import deque
 
-linker_group = get_driver().config.dict().get('linker_group', [])
-if not linker_group:
-    logger.warning('[直链提取]请在配置文件中设置应用群聊: linker_group=[\'群号\']')
-linker_command = get_driver().config.dict().get('linker_command', "")
-if not linker_command:
-    linker_command = "link"
+from . import config
+
+linker_group = config.linker_group
+linker_command = config.linker_command
 
 linker_parser = ArgumentParser(add_help=False)
 linker_parser.add_argument("-h", "--help", dest="help", action="store_true")
@@ -28,11 +26,13 @@ async def link(bot: Bot, event: GroupMessageEvent, state: T_State):
     gid = str(event.group_id)
     if gid in linker_group:
         args = vars(state.get("_args"))
+
+        name = args.get('name')
         logger.debug(args)
         if args.get('help'):
             await linker.finish(help_text)
         else:
-            if args.get('name') is None:
+            if name is None:
                 await linker.finish(f"[Linker]语法错误，输入`/{linker_command} -h`查看帮助")
             else:
                 await bot.send(event, "[Linker]处理中，请稍后…")
