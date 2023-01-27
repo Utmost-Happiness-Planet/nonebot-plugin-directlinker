@@ -1,4 +1,5 @@
 import time
+from urllib.parse import urlencode
 
 from nonebot import logger, on_shell_command
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment, Message
@@ -49,7 +50,8 @@ async def link(bot: Bot, event: GroupMessageEvent, state: T_State):
             files = {'root': root.get('files')}
             if root.get('folders'):
                 for folder in root.get('folders'):
-                    file = await bot.get_group_files_by_folder(group_id=int(event.group_id), folder_id=folder['folder_id'])
+                    file = await bot.get_group_files_by_folder(group_id=int(event.group_id),
+                                                               folder_id=folder['folder_id'])
                     files[folder['folder_name']] = file.get('files')
             # QQ群文件内不能套文件夹
 
@@ -101,7 +103,9 @@ async def link(bot: Bot, event: GroupMessageEvent, state: T_State):
 
             url = await bot.get_group_file_url(group_id=int(event.group_id), file_id=file['file_id'],
                                                bus_id=file['busid'])
-            url = url.get('url').rpartition("/")[0] + '?fname=' + name
+
+            data = {'fname': name}
+            url = url.get('url').rpartition("/")[0] + '/?' + urlencode(data).replace('+', '%20')
 
             result = [f"文件名：{file['file_name']}"
                       f"""\n上传时间：{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(file['upload_time']))}"""]
