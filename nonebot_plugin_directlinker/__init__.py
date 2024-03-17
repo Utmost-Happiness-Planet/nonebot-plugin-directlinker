@@ -109,7 +109,7 @@ async def link(bot: Bot, event: GroupMessageEvent, state: T_State):
 
             result = [f"文件名：{file['file_name']}"
                       f"""\n上传时间：{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(file['upload_time']))}"""]
-            result.extend(['\n上传者：', MessageSegment(type='at', data={'qq': file['uploader']})])
+            result.extend(['\n上传者：', MessageSegment(type='at', data={'qq': str(file['uploader'])})])
             result.append(f"\n下载链接：{url}\n")
             # if args["name"] in files:
             #     logger.debug([int(event.group_id), files[args["name"]][0], files[args["name"]][1]])
